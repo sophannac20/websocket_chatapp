@@ -1,0 +1,30 @@
+{
+  "name": "websocket_project",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node backend/server.js",
+    "client": "npm start --prefix frontend",
+    "dev": "concurrently \"npm:start\" \"npm:client\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.9.0",
+    "bcryptjs": "^3.0.2",
+    "concurrently": "^9.1.2",
+    "config": "^4.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.15.1",
+    "morgan": "^1.10.0",
+    "react-router-dom": "^7.6.1",
+    "socket.io": "^4.8.1",
+    "ws": "^8.18.2"
+  },
+  "description": ""
+}
