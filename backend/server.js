@@ -6,6 +6,17 @@ const cors = require('cors');
 const authRoutes = require('./routes/auth');
 
 const app = express();
+app.use(express.static(path.join(__dirname, '../frontend/build')));
+
+app.get('*', (req, res) => {
+  res.sendFile(path.resolve(__dirname, '../client/build', 'index.html'));
+});
+
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  next();
+});
+
 const server = http.createServer(app);
 
 // Middleware
