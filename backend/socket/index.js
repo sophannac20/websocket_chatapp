@@ -12,12 +12,9 @@ exports.setupSocket = (io) => {
       try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         userId = decoded.user.id;
-        username = decoded.user.username;
+        console.log(decoded.user)
         connectedUsers[userId] = socket.id;
-        console.log(`index ${userId}`)
-        io.emit('userConnected', userId); // Notify others
-        io.emit('userList', Object.keys(connectedUsers)); // Send current list
-        io.emit('authenticated', decoded);
+        io.emit('authenticated', userId);
       } catch (err) {
         console.error("Authentication failed:", err.message);
         socket.emit('unauthorized', 'Invalid token');

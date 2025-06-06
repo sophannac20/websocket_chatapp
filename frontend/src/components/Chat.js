@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, use } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import io from 'socket.io-client';
 import Header from './Header';
 import { Form, InputGroup, Button } from 'react-bootstrap';
@@ -14,8 +14,18 @@ const Chat = () => {
   const [user, setUser] = useState(null);
   const [typingUsers, setTypingUsers] = useState([]);
   const messagesEndRef = useRef();
-  const [chatNotifications, setChatNotifications] = useState([]);
   const socket = useRef();
+
+  const fetchUsername = async (userId) => {
+  try {
+    const res = await fetch(`http://localhost:4000/api/auth/${userId}`);
+    const data = await res.json();
+    return data.username;
+  } catch (err) {
+    console.error("Error fetching username:", err);
+    return "Unknown";
+  }
+};
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -23,16 +33,9 @@ const Chat = () => {
 
   useEffect(() => {
 
-    scrollToBottom();
-
     if (!token) return;
 
-    // Connect to backend
-    socket.current = io('http://localhost:4000', {
-      auth: {
-        token
-      }
-    });
+    scrollToBottom();
 
     // Fetch user info
     fetch('http://localhost:4000/api/auth/me', {
@@ -41,25 +44,32 @@ const Chat = () => {
       setUser(userData);
     });
 
-    socket.current.emit('authenticate', token);
-
-    socket.current.on('authenticated', (username) => {
-      console.log(username)
-      setChatNotifications(prev => [
-      ...prev,
-      { type: "join", text: `${username} has joined the chat`, time: new Date().toLocaleTimeString() }
-    ]);
-      // socket.current.on('receiveMessage', (msg) => {
-      //   setMessages(prev => [...prev, msg]);
-      // });
+    // Connect to backend
+    socket.current = io('http://localhost:4000', {
+      auth: {
+        token
+      }
     });
 
-    socket.current.on('userDisconnected', (userId) => {
-      // alert(`user ${userId} just leave!`);
-      console.log(`user ${userId} leaved!`)
-      setChatNotifications(prev => [
-      ...prev,
-      { type: "leave", text: `${userId} has leaved the chat`, time: new Date().toLocaleTimeString() }
+    socket.current.emit('authenticate', token);
+
+    socket.current.on('authenticated', async (userId) => {
+      const username = await fetchUsername(userId)
+      setMessages(prev => [
+        ...prev,
+        { type: "notify", 
+          text: `${username} has joined the chat`, time: new Date().toLocaleTimeString() }
+      ]);
+    });
+
+    socket.current.on('userDisconnected', async (userId) => {
+      const username = await fetchUsername(userId)
+      setMessages(prev => [
+        ...prev,
+        {
+          type: "notify",
+          text: `${username} has leaved the chat`, time: new Date().toLocaleTimeString()
+        }
       ]);
     });
 
@@ -72,9 +82,9 @@ const Chat = () => {
       setMessages(prev => [...prev, message]);
     });
 
-    socket.current.on('userList', (users) => {
-      console.log('Current users online:', users);
-    });
+    // socket.current.on('userList', (users) => {
+    //   console.log('Current users online:', users);
+    // });
 
     socket.current.on('unauthorized', () => {
       alert('Authentication failed!');
@@ -82,12 +92,11 @@ const Chat = () => {
     });
 
     // userDisconnected
-
     return () => {
       socket.current.disconnect();
     };
 
-  }, [token, messages]);
+  }, [token]);
 
   const sendMessage = (e) => {
     e.preventDefault();
@@ -111,10 +120,10 @@ const Chat = () => {
   return (
     <>
       <div>
-        <Header isloggedin={true} typingUsers={typingUsers.filter(name => name !== user?.username)} user={user}/>
+        <Header isloggedin={true} typingUsers={typingUsers.filter(name => name !== user?.username)} user={user} />
 
-        <ChatBlock messages={messages} user={user} chatNotifications={chatNotifications} messagesEndRef={messagesEndRef} />
-        
+        <ChatBlock messages={messages} user={user} messagesEndRef={messagesEndRef} />
+
         {/* input Label */}
         <Form onSubmit={sendMessage}>
           <InputGroup className="mb-3" style={{ padding: '0px 5px' }}>

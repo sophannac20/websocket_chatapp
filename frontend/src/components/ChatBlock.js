@@ -1,6 +1,6 @@
 import React from 'react'
 
-const ChatBlock = ({ messages, user, chatNotifications, messagesEndRef }) => {
+const ChatBlock = ({ messages, user, messagesEndRef }) => {
   
   return (
     <>
@@ -11,26 +11,25 @@ const ChatBlock = ({ messages, user, chatNotifications, messagesEndRef }) => {
         overflowY: 'auto',
         padding: '10px'
       }}>
-        {/* Chat Notifications (Join/Leave) */}
-      {chatNotifications.map((notif, i) => (
-        <div
-          key={i}
-          style={{
-            textAlign: 'center',
-            fontStyle: 'italic',
-            fontSize: '0.9em',
-            color: '#888',
-            margin: '10px 0'
-          }}
-        >
-          {notif.text}
-          <small style={{ marginLeft: '10px', color: '#aaa' }}>{notif.time}</small>
-        </div>
-      ))}
-
-
-
+        {/* Start Chat Notifications (Join/Leave) */}
         {messages.map((msg, i) => {
+          if (msg.type === 'notify'){
+            return (
+            <div
+              key={i}
+              style={{
+                textAlign: 'center',
+                fontSize: '0.9em',
+                fontStyle: 'italic',
+                color: '#888',
+                margin: '10px 0'
+              }}
+            >
+              {msg.text}
+              <small style={{ marginLeft: '10px', color: '#aaa' }}>{msg.time}</small>
+            </div>
+          );
+          }
           const isMyMessage = msg.username === user?.username;
           return (
             <div
